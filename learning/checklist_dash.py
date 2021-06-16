@@ -71,7 +71,6 @@ app.layout = html.Div(children=[
     html.H1(children='Toggling Plots with a Checklist'),
     html.Hr(),
     dbc.Row([dbc.Col(cards, width=4), dbc.Col(graph)])
-
 ])
 
 #======================== App Callback ===============================

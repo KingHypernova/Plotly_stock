@@ -40,41 +40,46 @@ marker_color = []
 for i in range(0,len(color_list)-1):
     marker_color.append( dict(color=color_list[i]) ) 
 
+def make_checklist(df):
+    checklist = dcc.Checklist(
+        id='my_checklist',               # connects data with specific graph
+        options=[ {'label': col + ' ', 'value': col} for col in df.columns ],   # options I give the user i.e. reg models, takes dictionary {'label': , 'value': }
+        value=[df.columns[0]],            # values loaded by default
+        style={"width": '50%', 'display': "inline-block"}
+    )
+    return checklist
 
+def model_values(df):
+    pass
 
 #========================= App layout =============================
 cards = dbc.Col(children=[
 
     dbc.Row(
-        dbc.Card(children=[
+
+        dbc.Card(children=
+            [
             dbc.CardHeader("Model Selection", className="card-title"),
-            dbc.CardBody([
+            dbc.CardBody(
+                [
                 dbc.Row(children=[
 
-                    dbc.Col(
-                        dcc.Checklist(
-                            id='my_checklist',               # connects data with specific graph
-                            options=[ {'label': col + ' ', 'value': col} for col in df.columns ],   # options I give the user i.e. reg models, takes dictionary {'label': , 'value': }
-                            value=[df.columns[0]],            # values loaded by default
-                            style={"width": '70%', 'display': "inline-block"}
-                        )
-                    ),
+                    dbc.Col(make_checklist(df)),
 
                     dbc.Col(children=[
 
-                        dbc.Row( html.P("Some text") ),
-                        dbc.Row( html.P("other text") )
+                        dbc.Row( html.Div("Some text") ),
+                        dbc.Row( html.Div("other text") )
                     ])
                 ])
             ])
-        ])
+            
+        ],
+            style={"width": "30rem"}
+        )
     ),
 
-    dbc.Row(
-        dbc.Card(
-            html.H2(children="Text here bro")
-        )
-    )
+    dbc.Row(html.Div(id='model_value1',children="Text here bro"))
 ])
 
 graph = dcc.Graph(id='the_graph')
@@ -82,7 +87,7 @@ graph = dcc.Graph(id='the_graph')
 app.layout = html.Div(children=[
     html.H1(children='Toggling Plots with a Checklist'),
     html.Hr(),
-    dbc.Row([dbc.Col(cards, width=4), dbc.Col(graph)])
+    dbc.Row([dbc.Col(cards, width=3), dbc.Col(graph)])
 
 ])
 
@@ -97,13 +102,15 @@ app.layout = html.Div(children=[
 
 def update_graph(checklist_options):
 
+    print(checklist_options)
+
     dff = df                        # copy of dataframe (dont want to mess it up)
     main_trace = dff['Linear']
     fig = make_subplots(specs=[[{'secondary_y': True}]])
 
     # Add models trace if toggled
     i=-1    # index for marker_color list (helps start at 0)
-    for col in dff.columns:         # col IS IS IS the column header string
+    for col in dff.columns:         # col IS the column header string
         i=i+1
         if col in checklist_options:
             fig.add_trace( go.Scatter(x=x, y=dff[col], name=col, marker=marker_color[i]) )
