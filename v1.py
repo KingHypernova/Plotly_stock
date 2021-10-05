@@ -33,24 +33,56 @@ df = pd.DataFrame({
     "Cubic" : y2
 	})
 
-numCols = len(df.columns)
-#=======================Display next to checklist =========================
+#print(df)
+#print(df.iloc[4,0])
+
+numCols = range(len(df.columns))
+#print(numCols)
+
+'''
+print(df)                    # prints dataframe
+print(df.columns)            # prints list of indices of column headers (weird pandas obj)
+print(df.columns[0])         # prints "Price"
+print([df.columns[0]])       # prints LIST containing string "Price"
+
+for col in df.columns:
+    print(col)
+
+# options=[{"label": f"Item {i}", "value": i} for i in range(10)] for producing diff dtrings in a for loop
+'''
+#======================= Display next to checklist =========================
 color_list = ['red', 'blue', 'green', 'purple', 'orange', 'yellow', 'white']
 marker_color = []
 for i in range(0,len(color_list)-1):
     marker_color.append( dict(color=color_list[i]) ) 
+
+#======================= HTML Functions ==========================
 
 def make_checklist(df):
     checklist = dcc.Checklist(
         id='my_checklist',               # connects data with specific graph
         options=[ {'label': col + ' ', 'value': col} for col in df.columns ],   # options I give the user i.e. reg models, takes dictionary {'label': , 'value': }
         value=[df.columns[0]],            # values loaded by default
-        style={"width": '50%', 'display': "inline-block"}
+        style={ "width": '180px', 
+                'height':"200px", 
+                'display': "inline-block",
+                "border":"1px black solid", 
+                'padding': '10px'},
+        inputStyle={"margin-right": "20px"},
+        labelStyle={'color':'green', 'font-size': '18px'}
     )
     return checklist
 
-def model_values(df):
-    pass
+'''
+def model_outputs(df):
+    for i in numCols:
+        output = 'Output(' + 'df.columns[i]' + ',' + 'children)'%i
+        print(output)
+'''
+#model_outputs(df)
+#================== Table conditional formatting ==================
+
+
 
 #========================= App layout =============================
 cards = dbc.Col(children=[
@@ -66,11 +98,22 @@ cards = dbc.Col(children=[
 
                     dbc.Col(make_checklist(df)),
 
-                    dbc.Col(children=[
+                    dbc.Col(
 
-                        dbc.Row( html.Div("Some text") ),
-                        dbc.Row( html.Div("other text") )
-                    ])
+                        dbc.ListGroup(
+                            [
+                                dbc.ListGroupItem(id="Linear"),
+                                dbc.ListGroupItem(id="Quadratic"),
+                                dbc.ListGroupItem(id="Cubic")
+                            ],
+                            flush=True
+                        ),
+                        #dbc.Row( html.Div(id='Linear') ),
+                        #dbc.Row( html.Div(id='Quadratic') ),
+                        #dbc.Row( html.Div(id='Cubic') )
+    
+                        style={'border': '1px black solid'}
+                    )
                 ])
             ])
             
@@ -97,12 +140,15 @@ app.layout = html.Div(children=[
 # spit out 'figure' into 'the graph' (replaces id attribute in dcc.Graph(id,figure) call)
 @app.callback(
     Output(component_id='the_graph', component_property='figure'),
+    Output('Linear', 'children'),
+    Output('Quadratic', 'children'),
+    Output('Cubic', 'children'),
     [Input(component_id='my_checklist', component_property='value')]
 )
 
 def update_graph(checklist_options):
 
-    print(checklist_options)
+    #print(checklist_options)
 
     dff = df                        # copy of dataframe (dont want to mess it up)
     main_trace = dff['Linear']
@@ -117,7 +163,7 @@ def update_graph(checklist_options):
 
     # Aesthetics
     fig.update_layout(margin= {'t':30, 'b':0, 'r': 0, 'l': 0, 'pad': 0})
-    fig.update_layout(hovermode = 'x')
+    fig.update_layout(hovermode = 'x unified')
     fig.update_layout(showlegend=True, legend=dict(x=1,y=0.85))
     fig.update_layout(uirevision='constant')
     fig.update_layout(template='plotly_dark',
@@ -125,7 +171,7 @@ def update_graph(checklist_options):
                       paper_bgcolor='#272B30')
     fig.update_layout(title = "Prices and predictions")
 
-    return(fig)
+    return(fig, dff.iloc[4,0], dff.iloc[4,1], dff.iloc[4,2])
 
 if __name__ == '__main__':
     app.run_server(debug=True)
